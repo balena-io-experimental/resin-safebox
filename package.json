@@ -1,0 +1,24 @@
+{
+  "name": "resin-safebox",
+  "version": "1.0.0",
+  "description": "An electronic safe-deposit box with 2FA, using resin.io and Authy",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pcarranzav/resin-safebox.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pcarranzav/resin-safebox/issues"
+  },
+  "homepage": "https://github.com/pcarranzav/resin-safebox",
+  "dependencies": {
+    "express": "^4.12.3",
+    "machina": "^1.0.0",
+    "socket.io": "^1.3.5"
+  }
+}
