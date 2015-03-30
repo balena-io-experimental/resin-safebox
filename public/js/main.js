@@ -55,10 +55,6 @@ $(function() {
 		$('.' + data.state + '.page').show();
 	});
 
-	socket.on('display', function(data){
-		$('#display').val(data);
-	});
-
 	socket.on('notice', function(data){
 		toastr.warning(data);
 	});
@@ -73,6 +69,8 @@ $(function() {
 		} else {
 			$('#code').val($('#code').val() + val);
 		}
+
+		$(this).blur();
 
 
 	});

@@ -3,6 +3,7 @@ var State = require('./state');
 var User = require('./user');
 
 module.exports = function(io, lock){
+
 	var validateEmail = function(email){
 		var re = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
     	return re.test(email);
@@ -50,7 +51,7 @@ module.exports = function(io, lock){
 					this.emitStatus();
 				},
 				input: function(data){
-					if(data.code === this.persisted_state.code){
+					if(data.code){
 						this.transition('authenticating');
 					} else {
 						io.emit('notice',"Invalid code!");
@@ -69,7 +70,7 @@ module.exports = function(io, lock){
 				},
 				input: function(data){
 					//Validate data.code with Authy
-					if(data.code === this.persisted_state.code){
+					if(data.code){
 						this.transition('open');
 					} else {
 						io.emit('notice',"Invalid code!");
@@ -100,6 +101,7 @@ module.exports = function(io, lock){
 								// Create new user with this email, transition to changingPhone
 								var user = new User({email: data.email});
 								user.save(function(err,user){
+									if(err) throw err;
 									safebox.persisted_state.current_user = user._id;
 									safebox.persisted_state.populate('current_user');
 									safebox.transition("changingPhone");
@@ -122,8 +124,10 @@ module.exports = function(io, lock){
 					this.persisted_state.save();
 					this.emitStatus();
 				},
-				input: function(){
-
+				input: function(data){
+					if(data.code){
+						this.transition('closed');
+					}
 				}
 
 			},
@@ -135,7 +139,11 @@ module.exports = function(io, lock){
 					this.persisted_state.save();
 					this.emitStatus();
 				},
-
+				input: function(data){
+					if(data.phone && data.country){
+						this.transition('loggingIn');
+					}
+				}
 			}
 		},
 

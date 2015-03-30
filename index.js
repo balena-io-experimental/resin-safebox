@@ -17,7 +17,3 @@ app.use(express.static(__dirname + '/public'));
 
 var lock = require('./models/lock')(io);
 var safebox = require('./models/safebox')(io, lock);
-
-
-safebox.display = require('./models/display')(safebox, io);
-safebox.dialpad = require('./models/dialpad')(safebox, io);
