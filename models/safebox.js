@@ -65,10 +65,11 @@ safebox.on('key', function(data){
 	if(data.match(/\d/)){
 		safebox.input += data;
 		safebox.displayInput();
-	} else if(data === 'ok'){
+	} else if(data === 'OK'){
 		safebox.handle('completeInput');
-	} else if(data === 'clear'){
+	} else if(data === 'CLR'){
 		safebox.clearInput();
+		safebox.displayInput();
 	}
 });
 
