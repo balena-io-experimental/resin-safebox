@@ -16,13 +16,56 @@
 			</nav>
 		</div>
 		<div class="container">
-			<div class="row">
-				<div class='col-xs-4 col-xs-offset-4'>
-					<h2 id="display"></h2>
-				</div>
+			<div class='alert alert-info open page'>
+				Lock is open! Please enter your email. 
 			</div>
+			<div class='alert alert-info loggingIn page'>
+				Please enter your numeric code to close the lock. 
+			</div>
+			<div class='alert alert-info changing page'>
+				Please enter your phone number. 
+			</div>
+			<form class='form-horizontal'>
+				<div class="row open page">
+					<div class='col-xs-6 col-xs-offset-3'>
+						<div class='form-group'>
+							<label for="email" class='control-label col-xs-2'>E-mail</label>
+							<div class='col-xs-10'>
+								<input type="text" name="email" id="email" class='form-control' />
+							</div>
+						</div>
+						
+					</div>
+				</div>
 
-			<div class="row">
+				<div class="row changingPhone page">
+					<div class='col-xs-6 col-xs-offset-3'>
+						<div class='form-group'>
+							<label for="phone" class='control-label col-xs-2'>Phone</label>
+							<div class='col-xs-3'>
+								<input type="text" name="country" id="country" class='form-control' />
+							</div>
+							<div class='col-xs-7'>
+								<input type="text" name="phone" id="phone" class='form-control' />
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="row loggingIn authenticating closed page">
+					<div class='col-xs-6 col-xs-offset-3'>
+						<div class='form-group display'>
+							<label for='display' class='control-label col-xs-2'>Code</label>
+							<div class='col-xs-10'>
+								<input type="password" disabled name='code' id="code" class='form-control' />
+							</div>
+						</div>
+					</div>
+				</div>
+			</form>
+			<a class='submit-button btn btn-default pull-right open changingPhone page'>OK</a>
+
+			<div class="row loggingIn authenticating closed page">
 				<div class="col-xs-12 dialpad">
 					<div class="row">
 						<div class="col-xs-12">

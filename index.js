@@ -1,3 +1,6 @@
+var mongoose = require('mongoose');
+mongoose.connect('mongodb://localhost/test');
+
 // Setup basic express server
 var express = require('express');
 var app = express();
@@ -12,8 +15,9 @@ server.listen(port, function () {
 // Routing
 app.use(express.static(__dirname + '/public'));
 
-var safebox = require('./models/safebox');
+var lock = require('./models/lock')(io);
+var safebox = require('./models/safebox')(io, lock);
 
-safebox.lock = require('./models/lock')(safebox, io);
+
 safebox.display = require('./models/display')(safebox, io);
 safebox.dialpad = require('./models/dialpad')(safebox, io);
