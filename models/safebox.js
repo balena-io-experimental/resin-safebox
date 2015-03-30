@@ -1,9 +1,30 @@
 var machina = require('machina');
 
+var State = require('./state');
+
+
 var safebox = new machina.Fsm({
 
-	initialize: function(){
+	persisted_state: {},
 
+	initialize: function(){
+		State.findOne({},function(err, result){
+			if(result){
+				safebox.persisted_state = result;
+				safebox.handle('ready');
+			} else {
+				safebox.persisted_state = new State({
+					current_state: 'open',
+					code: "",
+					phone: ""
+				});
+				safebox.persisted_state.save(function(err, s){
+					if(err) throw err;
+					safebox.handle('ready');
+				})
+			}
+			
+		});
 	},
 
 	namespace: 'safebox',
@@ -12,8 +33,8 @@ var safebox = new machina.Fsm({
 
 	states: {
 		uninitialized: {
-			_onEnter: function(){
-
+			ready: function(){
+				this.transition(this.persisted_state.current_state);
 			}
 		},
 
@@ -23,7 +44,7 @@ var safebox = new machina.Fsm({
 				this.lock('close');
 			},
 			completeInput: function(){
-				if(this.input === this.code){
+				if(this.input === this.persisted_state.code){
 					this.transition('authenticating');
 				}
 			}
@@ -39,6 +60,9 @@ var safebox = new machina.Fsm({
 		},
 
 		open: {
+			_onEnter: function(){
+				console.log('lock is open!');
+			}
 
 		},
 
@@ -48,8 +72,6 @@ var safebox = new machina.Fsm({
 	},
 
 	input: '',
-	code: '',
-	phone: '',
 
 	clearInput: function(){
 		this.input = '';
