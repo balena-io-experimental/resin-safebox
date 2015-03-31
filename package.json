@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/pcarranzav/resin-safebox",
   "dependencies": {
+    "authy": "^1.1.1",
+    "bcrypt": "^0.8.2",
     "express": "^4.12.3",
     "machina": "^1.0.0",
     "mongoose": "^4.0.1",

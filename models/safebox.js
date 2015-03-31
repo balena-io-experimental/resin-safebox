@@ -12,12 +12,21 @@ module.exports = function(io, lock){
 	var safebox = new machina.Fsm({
 
 		persisted_state: {},
+		current_user: {},
 
 		initialize: function(){
 			State.findOne({},function(err, result){
 				if(result){
 					safebox.persisted_state = result;
-					safebox.handle('ready');
+					if(result.current_user){
+						User.find({_id: result.current_user},function(err,user){
+							safebox.current_user = user;
+							safebox.handle('ready');
+						});
+					} else {
+						safebox.handle('ready');
+					}
+					
 				} else {
 					safebox.persisted_state = new State({
 						current_state: 'open',
@@ -51,11 +60,15 @@ module.exports = function(io, lock){
 					this.emitStatus();
 				},
 				input: function(data){
-					if(data.code){
-						this.transition('authenticating');
-					} else {
-						io.emit('notice',"Invalid code!");
-					}
+					this.current_user.comparePassword(data.code, function(err, match){
+						if(match){
+							safebox.transition('authenticating');
+						} else {
+							io.emit('notice', 'That\'s not your code!');
+							safebox.transition('closed');
+						}
+							
+					});
 				}
 
 			},
@@ -94,7 +107,7 @@ module.exports = function(io, lock){
 							if(result){
 								// User exists, set as current user and ask for code to close
 								safebox.persisted_state.current_user = result._id;
-								safebox.persisted_state.populate('current_user');
+								safebox.current_user = result;
 								io.emit('notice',"Welcome back!");
 								safebox.transition("loggingIn");
 							} else {
@@ -103,7 +116,7 @@ module.exports = function(io, lock){
 								user.save(function(err,user){
 									if(err) throw err;
 									safebox.persisted_state.current_user = user._id;
-									safebox.persisted_state.populate('current_user');
+									safebox.current_user = user;
 									safebox.transition("changingPhone");
 									io.emit('notice',"Welcome!");
 								});
@@ -125,9 +138,27 @@ module.exports = function(io, lock){
 					this.emitStatus();
 				},
 				input: function(data){
-					if(data.code){
-						this.transition('closed');
+					var validCode = false;
+					if(this.current_user.password){
+						this.current_user.comparePassword(data.code, function(err, match){
+							if(match){
+								safebox.transition('closed');
+							} else {
+								io.emit('notice', 'That\'s not your code!');
+								safebox.transition('open');
+							}
+								
+						});
+					} else {
+						this.current_user.password = data.code;
+						this.current_user.save(function(err,user){
+							if(err) throw err;
+							safebox.transition('closed');
+						})
+						
 					}
+
+					
 				}
 
 			},
@@ -154,23 +185,8 @@ module.exports = function(io, lock){
 		}
 	});
 
-/*
-	safebox.on('key', function(data){
-		console.log(data);
-		if(data.match(/\d/)){
-			safebox.input += data;
-			safebox.displayInput();
-		} else if(data === 'OK'){
-			safebox.handle('completeInput');
-		} else if(data === 'CLR'){
-			safebox.clearInput();
-			safebox.displayInput();
-		}
-	});
-*/
-
-
 	safebox.lock = lock;
+
 	io.on('connection',function(socket){
 		socket.on('status',function(){
 			console.log('status request');
