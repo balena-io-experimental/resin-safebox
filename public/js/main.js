@@ -3,7 +3,7 @@ $(function() {
 	// Initialize varibles
 	var $window = $(window);
 	var connected = false;
-	var current_state;
+	var currentState;
 	$('.page').hide();
 
 	var socket = io();
@@ -57,7 +57,7 @@ $(function() {
 	socket.on('status', function(data){
 		console.log('new status');
 		console.log(data);
-		current_state = data.state;
+		currentState = data.state;
 		$('.page').hide();
 		$('.' + data.state + '.page').show();
 

@@ -11,16 +11,16 @@ module.exports = function(io, lock){
 
 	var safebox = new machina.Fsm({
 
-		persisted_state: {},
-		current_user: {},
+		persistedState: {},
+		currentUser: {},
 
 		initialize: function(){
 			State.findOne({},function(err, result){
 				if(result){
-					safebox.persisted_state = result;
-					if(result.current_user){
-						User.find({_id: result.current_user},function(err,user){
-							safebox.current_user = user;
+					safebox.persistedState = result;
+					if(result.currentUser){
+						User.findOne({_id: result.currentUser},function(err,user){
+							safebox.currentUser = user;
 							safebox.handle('ready');
 						});
 					} else {
@@ -28,11 +28,11 @@ module.exports = function(io, lock){
 					}
 					
 				} else {
-					safebox.persisted_state = new State({
-						current_state: 'open',
-						current_user: null
+					safebox.persistedState = new State({
+						currentState: 'open',
+						currentUser: null
 					});
-					safebox.persisted_state.save(function(err, s){
+					safebox.persistedState.save(function(err, s){
 						if(err) throw err;
 						safebox.handle('ready');
 					})
@@ -48,19 +48,19 @@ module.exports = function(io, lock){
 		states: {
 			uninitialized: {
 				ready: function(){
-					this.transition(this.persisted_state.current_state);
+					this.transition(this.persistedState.currentState);
 				}
 			},
 
 			closed: {
 				_onEnter: function(){
 					this.lock('close');
-					this.persisted_state.current_state = 'closed';
-					this.persisted_state.save();
+					this.persistedState.currentState = 'closed';
+					this.persistedState.save();
 					this.emitStatus();
 				},
 				input: function(data){
-					this.current_user.comparePassword(data.code, function(err, match){
+					this.currentUser.comparePassword(data.code, function(err, match){
 						if(match){
 							safebox.transition('authenticating');
 						} else {
@@ -76,10 +76,10 @@ module.exports = function(io, lock){
 			authenticating: {
 				_onEnter: function(){
 					this.lock('close');
-					this.persisted_state.current_state = 'authenticating';
-					this.persisted_state.save();
+					this.persistedState.currentState = 'authenticating';
+					this.persistedState.save();
 
-					this.current_user.sendAuthyToken(function(err){
+					this.currentUser.sendAuthyToken(function(err){
 						if(err) console.log(err);
 					})
 
@@ -88,7 +88,7 @@ module.exports = function(io, lock){
 				input: function(data){
 					//Validate data.code with Authy
 					if(data.code){
-						this.current_user.verifyAuthyToken(data.code, function(err){
+						this.currentUser.verifyAuthyToken(data.code, function(err){
 							if(err){
 								io.emit('notice',"Invalid code!");
 								safebox.transition('closed');
@@ -109,8 +109,8 @@ module.exports = function(io, lock){
 				_onEnter: function(){
 					console.log('lock is open!');
 					this.lock('open');
-					this.persisted_state.current_state = 'open';
-					this.persisted_state.save();
+					this.persistedState.currentState = 'open';
+					this.persistedState.save();
 					this.emitStatus();
 				},
 				input: function(data){
@@ -118,8 +118,8 @@ module.exports = function(io, lock){
 						User.findOne({email: data.email},function(err,result){
 							if(result){
 								// User exists, set as current user and ask for code to close
-								safebox.persisted_state.current_user = result._id;
-								safebox.current_user = result;
+								safebox.persistedState.currentUser = result._id;
+								safebox.currentUser = result;
 								io.emit('notice',"Welcome back!");
 								safebox.transition("loggingIn");
 							} else {
@@ -132,8 +132,8 @@ module.exports = function(io, lock){
 										throw err2;
 									} 
 									console.log("new user saved");
-									safebox.persisted_state.current_user = user._id;
-									safebox.current_user = user;
+									safebox.persistedState.currentUser = user._id;
+									safebox.currentUser = user;
 									safebox.transition("changingPhone");
 									io.emit('notice',"Welcome!");
 								});
@@ -150,14 +150,14 @@ module.exports = function(io, lock){
 			loggingIn: {
 				_onEnter: function(){
 					this.lock('open');
-					this.persisted_state.current_state = 'loggingIn';
-					this.persisted_state.save();
+					this.persistedState.currentState = 'loggingIn';
+					this.persistedState.save();
 					this.emitStatus();
 				},
 				input: function(data){
 					var validCode = false;
-					if(this.current_user.password){
-						this.current_user.comparePassword(data.code, function(err, match){
+					if(this.currentUser.password){
+						this.currentUser.comparePassword(data.code, function(err, match){
 							if(match){
 								safebox.transition('closed');
 							} else {
@@ -167,8 +167,8 @@ module.exports = function(io, lock){
 								
 						});
 					} else {
-						this.current_user.password = data.code;
-						this.current_user.save(function(err,user){
+						this.currentUser.password = data.code;
+						this.currentUser.save(function(err,user){
 							if(err) throw err;
 							safebox.transition('closed');
 						})
@@ -183,15 +183,15 @@ module.exports = function(io, lock){
 			changingPhone: {
 				_onEnter: function(){
 					this.lock('open');
-					this.persisted_state.current_state = 'changingPhone';
-					this.persisted_state.save();
+					this.persistedState.currentState = 'changingPhone';
+					this.persistedState.save();
 					this.emitStatus();
 				},
 				input: function(data){
 					if(data.phone && data.country){
-						this.current_user.phone = data.phone;
-						this.current_user.countryCode = data.country;
-						this.current_user.save(function(err,user){
+						this.currentUser.phone = data.phone;
+						this.currentUser.countryCode = data.country;
+						this.currentUser.save(function(err,user){
 							if(err) throw err;
 							safebox.transition('loggingIn');
 						})
@@ -202,7 +202,7 @@ module.exports = function(io, lock){
 
 		emitStatus: function(){
 			io.emit('status',{
-				state: safebox.persisted_state.current_state
+				state: safebox.persistedState.currentState
 			})
 		}
 	});
@@ -216,7 +216,7 @@ module.exports = function(io, lock){
 		});
 
 		socket.on('input', function(data){
-			safebox.handle('input',data);
+			safebox.handle('input', data);
 		});
 	});
 

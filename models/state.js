@@ -1,8 +1,8 @@
 var mongoose = require('mongoose');
 
 var State = mongoose.model('state',{
-	current_state: String,
-	current_user: {
+	currentState: String,
+	currentUser: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: 'user'
 	}
