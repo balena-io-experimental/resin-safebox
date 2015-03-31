@@ -79,15 +79,27 @@ module.exports = function(io, lock){
 					this.persisted_state.current_state = 'authenticating';
 					this.persisted_state.save();
 
+					this.current_user.sendAuthyToken(function(err){
+						if(err) console.log(err);
+					})
+
 					this.emitStatus();
 				},
 				input: function(data){
 					//Validate data.code with Authy
 					if(data.code){
-						this.transition('open');
+						this.current_user.verifyAuthyToken(data.code, function(err){
+							if(err){
+								io.emit('notice',"Invalid code!");
+								safebox.transition('closed');
+							} else {
+								safebox.transition('open');
+							}
+						});
+						
 					} else {
 						io.emit('notice',"Invalid code!");
-						this.transition('closed');
+						safebox.transition('closed');
 					}
 				}
 
@@ -113,8 +125,13 @@ module.exports = function(io, lock){
 							} else {
 								// Create new user with this email, transition to changingPhone
 								var user = new User({email: data.email});
-								user.save(function(err,user){
-									if(err) throw err;
+								console.log(user);
+								user.save(function(err2,u){
+									if(err2){
+										console.log('error saving');
+										throw err2;
+									} 
+									console.log("new user saved");
 									safebox.persisted_state.current_user = user._id;
 									safebox.current_user = user;
 									safebox.transition("changingPhone");
@@ -172,7 +189,12 @@ module.exports = function(io, lock){
 				},
 				input: function(data){
 					if(data.phone && data.country){
-						this.transition('loggingIn');
+						this.current_user.phone = data.phone;
+						this.current_user.countryCode = data.country;
+						this.current_user.save(function(err,user){
+							if(err) throw err;
+							safebox.transition('loggingIn');
+						})
 					}
 				}
 			}
