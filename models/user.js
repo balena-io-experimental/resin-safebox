@@ -1,3 +1,5 @@
+// Based on https://github.com/TwilioDevEd/authy2fa-node
+
 var mongoose = require('mongoose');
 var bcrypt = require('bcrypt');
 
