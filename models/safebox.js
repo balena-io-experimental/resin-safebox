@@ -1,8 +1,9 @@
 var machina = require('machina');
 var State = require('./state');
 var User = require('./user');
+var Lock = require('./lock');
 
-module.exports = function(io, lock){
+module.exports = function(io){
 
 	var validateEmail = function(email){
 		var re = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
@@ -54,7 +55,8 @@ module.exports = function(io, lock){
 
 			closed: {
 				_onEnter: function(){
-					this.lock('close');
+					this.lock.enabled(false);
+					this.lock.close();
 					this.persistedState.currentState = 'closed';
 					this.persistedState.save();
 					this.emitStatus();
@@ -75,7 +77,7 @@ module.exports = function(io, lock){
 
 			authenticating: {
 				_onEnter: function(){
-					this.lock('close');
+					this.lock.enabled(false);
 					this.persistedState.currentState = 'authenticating';
 					this.persistedState.save();
 
@@ -108,7 +110,8 @@ module.exports = function(io, lock){
 			open: {
 				_onEnter: function(){
 					console.log('lock is open!');
-					this.lock('open');
+					this.lock.enabled(true);
+					this.lock.open();
 					this.persistedState.currentState = 'open';
 					this.persistedState.save();
 					this.emitStatus();
@@ -149,7 +152,7 @@ module.exports = function(io, lock){
 
 			loggingIn: {
 				_onEnter: function(){
-					this.lock('open');
+					this.lock.enabled(true);
 					this.persistedState.currentState = 'loggingIn';
 					this.persistedState.save();
 					this.emitStatus();
@@ -182,7 +185,7 @@ module.exports = function(io, lock){
 
 			changingPhone: {
 				_onEnter: function(){
-					this.lock('open');
+					this.lock.enabled(true);
 					this.persistedState.currentState = 'changingPhone';
 					this.persistedState.save();
 					this.emitStatus();
@@ -202,12 +205,13 @@ module.exports = function(io, lock){
 
 		emitStatus: function(){
 			io.emit('status',{
-				state: safebox.persistedState.currentState
+				state: safebox.persistedState.currentState,
+				lock: safebox.lock.status()
 			})
 		}
 	});
 
-	safebox.lock = lock;
+	safebox.lock = new Lock(io, process.env.GPIO);
 
 	io.on('connection',function(socket){
 		socket.on('status',function(){
@@ -217,6 +221,10 @@ module.exports = function(io, lock){
 
 		socket.on('input', function(data){
 			safebox.handle('input', data);
+		});
+
+		socket.on('open lock', function(){
+			safebox.lock.open(); // Will internally decide whether it's OK to open or not.
 		});
 	});
 
