@@ -35,7 +35,7 @@ var Lock = function(io, gpio){
 			var that = this;
 			setTimeout(function(){
 				that.close();
-			}, 2000);
+			}, 3000);
 		}
 	};
 
