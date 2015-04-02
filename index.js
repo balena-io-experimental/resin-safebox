@@ -15,4 +15,4 @@ server.listen(port, function () {
 // Routing
 app.use(express.static(__dirname + '/public'));
 
-var safebox = require('./models/safebox')(io, lock);
+var safebox = require('./models/safebox')(io);
