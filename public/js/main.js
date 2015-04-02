@@ -82,4 +82,9 @@ $(function() {
 
 
 	});
+
+	$('#open-lock').click(function(){
+		socket.emit('open lock');
+		toastr.info("Opening!");
+	});
 });
