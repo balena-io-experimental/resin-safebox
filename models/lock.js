@@ -27,7 +27,7 @@ var Lock = function(io, gpio){
 	};
 
 	this.open = function(){
-		if(this.allowOpen){
+		if(this.allowOpen && !this.isOpen){
 			this.gpio.value(true);
 			io.emit('lock', this.status());
 			this.isOpen = true;
