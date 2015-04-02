@@ -7,4 +7,4 @@ COPY . .
 RUN mkdir -p /datadb
 RUN npm install
 EXPOSE 8080
-CMD /usr/bin/mongod --dbpath /datadb && node index.js
+CMD /usr/bin/mongod --dbpath /datadb --fork --logpath mongod.log && node index.js
