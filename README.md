@@ -29,11 +29,11 @@ Hardware
 --------
 We built the solenoid driver using a 2n2222 transistor, a few resistors, and a diode, all on a small protoboard. It's this little arachnid:
 
-![Circuit on protoboard](../blob/master/doc/Protoboard.jpg)
+![Circuit on protoboard](../../blob/master/doc/Protoboard.jpg)
 
 The schematic looks like this:
 
-![Circuit schematic](../blob/master/doc/Solenoid-driver.png)
+![Circuit schematic](../../blob/master/doc/Solenoid-driver.png)
 
 The solenoid itself is a 5V model like [this one](http://www.olimex.cl/product_info.php?products_id=1186&product__name=Solenoide_5v_(peque%F1o)).
 You could of course use another one, but you might have to adapt the driver circuit or even use a separate power source.
