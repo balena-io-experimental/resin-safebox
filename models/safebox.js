@@ -82,7 +82,11 @@ module.exports = function(io){
 					this.persistedState.save();
 
 					this.currentUser.sendAuthyToken(function(err){
-						if(err) console.log(err);
+						if(err){
+							console.log(err);
+						} else {
+							console.log('Sent Token');
+						}
 					})
 
 					this.emitStatus();

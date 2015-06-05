@@ -65,14 +65,20 @@ UserSchema.methods.sendAuthyToken = function(cb) {
 
     if (!self.authyId) {
         // Register this user if it's a new user
+        console.log('Registering Authy user');
         authy.register_user(self.email, self.phone, self.countryCode, 
             function(err, response) {
                 
-            if (err || !response.user) return cb.call(self, err);
+            if (err || !response.user){
+            	console.log("Failed to register user with Authy")
+            	return cb.call(self, err);
+            }
             self.authyId = response.user.id;
             self.save(function(err, doc) {
                 if (err || !doc) return cb.call(self, err);
                 self = doc;
+                console.log("Saved with AuthyID");
+                console.log(self);
                 sendToken();
             });
         });
@@ -83,6 +89,7 @@ UserSchema.methods.sendAuthyToken = function(cb) {
 
     // With a valid Authy ID, send the 2FA token for this user
     function sendToken() {
+    	console.log("Sending SMS Token");
         authy.request_sms(self.authyId, function(err, response) {
             cb.call(self, err);
         });
