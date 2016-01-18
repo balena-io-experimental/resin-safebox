@@ -1,10 +1,19 @@
-FROM resin/rpi-raspbian:jessie
-RUN apt-get update
-RUN apt-get install -y curl
-RUN curl -sL https://deb.nodesource.com/setup | bash -
-RUN apt-get install -y build-essential nodejs mongodb
-COPY . .
+FROM resin/raspberrypi-node:5.3.0-slim-20160114
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+		python \
+		build-essential \
+		mongodb \
+	&& rm -rf /var/lib/apt/lists/*
+
 RUN mkdir -p /datadb
+
+COPY package.json .
+
 RUN npm install
+
+COPY . .
+
 EXPOSE 8080
+
 CMD bash start.sh
